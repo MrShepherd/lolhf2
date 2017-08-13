@@ -27,18 +27,18 @@ class BasicDataCrawler(object):
             count += 1
             team_links = self.browser.find_element_by_id('teamranking_left_team').find_elements_by_tag_name('li')
             for team_link in team_links:
-                print('click team list:', team_link)
+                # print('click team list:', team_link)
                 team_link.click()
                 time.sleep(4)
                 self.teampages.append(self.browser.page_source)
                 player_link = self.browser.find_element_by_id('teamranking_middle_team_detail').find_element_by_class_name('ranking_default_img')
-                print('click team icon:', player_link)
+                # print('click team icon:', player_link)
                 player_link.click()
                 time.sleep(2)
-            if count == 4:
+            if count == 8:
                 break
             page_link = self.browser.find_element_by_id("teamranking_team_page").find_element_by_link_text(str(count))
-            print('click page down:', page_link)
+            # print('click page down:', page_link)
             page_link.click()
             time.sleep(4)
         for handle in self.browser.window_handles:
@@ -68,7 +68,7 @@ class BasicDataCrawler(object):
                 else:
                     temp_dict['team_league'] = 'ELSE'
                 self.team_data.append(temp_dict)
-        print(self.nation_set)
+        # print(self.nation_set)
         return self.team_data
 
     def crawl_team_img(self):
@@ -78,14 +78,14 @@ class BasicDataCrawler(object):
             os.makedirs(self.img_path + '/team')
         for img_str in self.nation_set:
             url = 'https://static.wanplus.com/data/common/country/' + img_str + '.png'
-            print('saving nation img:', url)
+            # print('saving nation img:', url)
             request.urlretrieve(url, self.img_path + '/nation/' + img_str + '.png')
         for page in self.teampages:
             soup = htmlparser.HtmlParser(page).get_soup()
             img_link = soup.find('div', {'id': 'teamranking_middle_team_detail'}).find('img').get('src')
             img_team = soup.find('div', {'id': 'teamranking_middle_team_detail'}).find('span').get_text()
             img_name = img_team + '.png'
-            print('saving team img:', img_link)
+            # print('saving team img:', img_link)
             request.urlretrieve(img_link, self.img_path + '/team/' + img_name)
         return 'ok'
 
@@ -105,14 +105,14 @@ class BasicDataCrawler(object):
                             'player_team_country': soup.find('table', class_='team_tba1').find_all('td')[3].get_text().split('：')[1], 'player_name': li.find('img').get('alt').upper()}
                 img_name = tmp_dict['player_name'] + '.png'
                 img_link = li.find('img').get('src')
-                print('saving player img:', img_link)
+                # print('saving player img:', img_link)
                 request.urlretrieve(img_link, self.img_path + '/player/' + img_name)
                 tmp_dict['player_country'] = li.find('i').get('class')[1]
                 if li.find('strong') is not None and len(li.find('strong')) != 0:
                     tmp_dict['player_place'] = li.find('strong').get_text().split(':')[1]
                 else:
                     tmp_dict['player_place'] = '未知'
-                if tmp_dict['player_place'] == '?':
+                if '?' in tmp_dict['player_place']:
                     tmp_dict['player_place'] = '未知'
                 if tmp_dict['player_team_country'] in ['中国']:
                     tmp_dict['player_team_league'] = 'LPL'
