@@ -108,7 +108,12 @@ class BasicDataCrawler(object):
                 print('saving player img:', img_link)
                 request.urlretrieve(img_link, self.img_path + '/player/' + img_name)
                 tmp_dict['player_country'] = li.find('i').get('class')[1]
-                tmp_dict['player_place'] = li.find('strong').get_text().split(':')[1]
+                if li.find('strong') is not None and len(li.find('strong')) != 0:
+                    tmp_dict['player_place'] = li.find('strong').get_text().split(':')[1]
+                else:
+                    tmp_dict['player_place'] = '未知'
+                if tmp_dict['player_place'] == '?':
+                    tmp_dict['player_place'] = '未知'
                 if tmp_dict['player_team_country'] in ['中国']:
                     tmp_dict['player_team_league'] = 'LPL'
                 elif tmp_dict['player_team_country'] in ['韩国']:
