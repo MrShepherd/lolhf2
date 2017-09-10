@@ -3,7 +3,8 @@ import time
 
 import basic_data_crawler
 import dbhandler
-from models import Team, Player
+import gameid_info_crawler
+from models import Team, Player, GameIDInfo, IDMapping
 
 TIME_START = time.time()
 TIME_COUNT = '0'
@@ -46,4 +47,12 @@ if __name__ == '__main__':
         print('%s: start to save player info to db' % get_time())
         db_handler.save_data(player_info, Player)
         print('spent %s seconds to save player info to db' % time_count())
+        crawler.close()
+    if 'daily' in sys.argv:
+        crawler = gameid_info_crawler.GameIDInfoCrawler()
+        crawler.collect_page()
+        gameid_data, id_mapping = crawler.crawl_gameid_info()
+        db_handler.save_data(gameid_data, GameIDInfo)
+        db_handler.save_data(id_mapping, IDMapping)
+        db_handler.update_summary()
         crawler.close()

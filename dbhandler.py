@@ -21,7 +21,7 @@ class DBHandler(object):
             try:
                 session = self.DBSession()
                 row = table_model(**data)
-                print('saving:', row)
+                # print('saving:', row)
                 session.add(row)
                 session.commit()
                 session.close()
