@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Float
+from sqlalchemy import Column, String, Integer
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -62,15 +62,6 @@ class GameIDInfo(Base):
     total_win = Column(Integer)
     total_lose = Column(Integer)
     total_win_ratio = Column(Integer)
-    mmr = Column(Integer)
-    twentywin = Column(Integer)
-    twentylose = Column(Integer)
-    twentywinratio = Column(Integer)
-    twentyavgkill = Column(Float)
-    twentyavgdeath = Column(Float)
-    twentyavgassist = Column(Float)
-    twentyavgkda = Column(Float)
-    twentyavgck = Column(Float)
 
     def __repr__(self):
         return '<GameIDInfo %r>' % self.game_id
@@ -91,15 +82,6 @@ class Summary(Base):
     total_win = Column(Integer)
     total_lose = Column(Integer)
     total_win_ratio = Column(Integer)
-    mmr = Column(Integer)
-    twentywin = Column(Integer)
-    twentylose = Column(Integer)
-    twentywinratio = Column(Integer)
-    twentyavgkill = Column(Float)
-    twentyavgdeath = Column(Float)
-    twentyavgassist = Column(Float)
-    twentyavgkda = Column(Float)
-    twentyavgck = Column(Float)
 
     def __repr__(self):
         return '<Summary %r>' % self.game_id

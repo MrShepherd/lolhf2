@@ -4,7 +4,7 @@ import time
 import basic_data_crawler
 import dbhandler
 import gameid_info_crawler
-from models import Team, Player, GameIDInfo, IDMapping
+from models import Team, Player, IDMapping, GameIDInfo
 
 TIME_START = time.time()
 TIME_COUNT = '0'
@@ -50,9 +50,8 @@ if __name__ == '__main__':
         crawler.close()
     if 'daily' in sys.argv:
         crawler = gameid_info_crawler.GameIDInfoCrawler()
-        crawler.collect_page()
-        gameid_data, id_mapping = crawler.crawl_gameid_info()
-        db_handler.save_data(gameid_data, GameIDInfo)
-        db_handler.save_data(id_mapping, IDMapping)
-        db_handler.update_summary()
+        idmapping_data = crawler.crawl_idmapping_info()
+        db_handler.save_data(idmapping_data, IDMapping)
+        gameid_info = crawler.crawl_gameid_info()
+        db_handler.save_data(gameid_info, GameIDInfo)
         crawler.close()
