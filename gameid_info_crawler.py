@@ -23,25 +23,30 @@ class GameIDInfoCrawler(object):
         page_source = browser.page_source
         print('length of html:', len(page_source))
         # soup = htmlparser.HtmlParser(page_source)
-        tmp_dict = {}
         all_team = browser.find_elements_by_xpath('//div[@class="RegisterSummonerBox"]')
         print('number of teams found:', len(all_team))
         for team in all_team:
-            tmp_dict['player_team'] = team.find_element_by_xpath(".//div[@class='TeamName']").text
             all_li = team.find_elements_by_tag_name('li')
-            print('number of gameids found:', len(all_li))
+            # print('number of gameids found:', len(all_li))
             for li in all_li:
+                tmp_dict = {}
+                tmp_dict['player_team'] = team.find_element_by_xpath(".//div[@class='TeamName']").text
                 tmp_dict['game_id'] = li.find_element_by_xpath('.//div[@class="SummonerName"]').text
                 tmp_dict['player_name'] = li.find_element_by_xpath('.//span[@class="SummonerExtra"]').text.upper()
-                print(tmp_dict)
+                # print(tmp_dict)
+                self.idmapping_data.append(tmp_dict)
                 self.pro_gameids.add(tmp_dict['game_id'])
                 self.pro_ids.add(tmp_dict['player_name'])
-                self.idmapping_data.append(tmp_dict)
+                # print(len(self.idmapping_data))
+                # print(self.idmapping_data)
         browser.close()
         browser.quit()
         print('number of gameids found:', len(self.pro_gameids))
+        print(self.pro_gameids)
         print('number of pros found:', len(self.pro_ids))
+        print(self.pro_ids)
         print('number of mapping groups found:', len(self.idmapping_data))
+        print(self.idmapping_data)
         return self.idmapping_data
 
     def crawl_gameid_info(self):

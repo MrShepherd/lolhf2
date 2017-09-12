@@ -52,6 +52,6 @@ if __name__ == '__main__':
         crawler = gameid_info_crawler.GameIDInfoCrawler()
         idmapping_data = crawler.crawl_idmapping_info()
         db_handler.save_data(idmapping_data, IDMapping)
-        gameid_info = crawler.crawl_gameid_info()
-        db_handler.save_data(gameid_info, GameIDInfo)
+        # gameid_info = crawler.crawl_gameid_info()
+        # db_handler.save_data(gameid_info, GameIDInfo)
         crawler.close()
