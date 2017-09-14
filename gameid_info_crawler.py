@@ -33,17 +33,17 @@ class GameIDInfoCrawler(object):
             browser.execute_script('window.stop()')
         page_html = browser.page_source
         print('length of html:', len(page_html))
-        # soup = htmlparser.HtmlParser(page_source)
-        all_team = browser.find_elements_by_xpath('//div[@class="RegisterSummonerBox"]')
+        soup = htmlparser.HtmlParser(page_html).get_soup()
+        all_team = soup.find_all("div", class_="RegisterSummonerBox")
         print('number of teams found:', len(all_team))
         for team in all_team:
-            all_li = team.find_elements_by_tag_name('li')
+            all_li = team.find_all("li")
             # print('number of gameids found:', len(all_li))
             for li in all_li:
                 tmp_dict = {}
-                tmp_dict['player_team'] = team.find_element_by_xpath(".//div[@class='TeamName']").text
-                tmp_dict['game_id'] = li.find_element_by_xpath('.//div[@class="SummonerName"]').text
-                tmp_dict['player_name'] = li.find_element_by_xpath('.//span[@class="SummonerExtra"]').text.upper()
+                tmp_dict['player_team'] = team.find("div", class_="TeamName").get_text().strip()
+                tmp_dict['game_id'] = li.find("div", class_="SummonerName").get_text()
+                tmp_dict['player_name'] = li.find("span", class_="SummonerExtra").get_text().upper()
                 # print(tmp_dict)
                 self.idmapping_data.append(tmp_dict)
                 self.pro_gameids.add(tmp_dict['game_id'])
@@ -69,19 +69,22 @@ class GameIDInfoCrawler(object):
             browser.get(self.gameid_info_url)
         except TimeoutException:
             browser.execute_script("window.stop()")
-        form = browser.find_element_by_xpath("//div[@class='PageHeaderWrap']//form[@class='FormItem']//input[@class='Input']")
-        form.clear()
-        form.send_keys(gameid)
         try:
+            form = browser.find_element_by_xpath("//div[@class='PageHeaderWrap']//form[@class='FormItem']//input[@class='Input']")
+            form.clear()
+            form.send_keys(gameid)
             form.send_keys(Keys.RETURN)
         except TimeoutException:
             browser.execute_script("window.stop()")
+        except Exception as e:
+            print(e)
+            return 'fuck'
         time.sleep(3)
         browser.execute_script("window.stop()")
         page_html = browser.page_source
         soup = htmlparser.HtmlParser(page_html).get_soup()
-        selected_row = soup.find("table", class_="LadderRankingTable").find("tr", class_="Selected")
         try:
+            selected_row = soup.find("table", class_="LadderRankingTable").find("tr", class_="Selected")
             tmp_dict = {}
             tmp_dict['rank'] = selected_row.find("td", class_="Rank").get_text()
             tmp_dict['game_id'] = selected_row.find("td", class_="SummonerName").find("a").get_text()
