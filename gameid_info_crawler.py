@@ -1,9 +1,11 @@
 import time
+import random
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
 from multiprocessing.dummy import Pool
 import dbhandler
+import htmlparser
 
 
 class GameIDInfoCrawler(object):
@@ -29,8 +31,8 @@ class GameIDInfoCrawler(object):
             browser.get(self.idmapping_url)
         except TimeoutException:
             browser.execute_script('window.stop()')
-        page_source = browser.page_source
-        print('length of html:', len(page_source))
+        page_html = browser.page_source
+        print('length of html:', len(page_html))
         # soup = htmlparser.HtmlParser(page_source)
         all_team = browser.find_elements_by_xpath('//div[@class="RegisterSummonerBox"]')
         print('number of teams found:', len(all_team))
@@ -60,7 +62,9 @@ class GameIDInfoCrawler(object):
 
     def crawl_gameid_info_by_search(self, gameid):
         browser = webdriver.PhantomJS(executable_path="/opt/phantomjs/bin/phantomjs")
-        browser.set_page_load_timeout(15)
+        # browser = webdriver.Firefox()
+        browser.set_page_load_timeout(30)
+        # time.sleep(random.randint(1, 8))
         try:
             browser.get(self.gameid_info_url)
         except TimeoutException:
@@ -74,28 +78,28 @@ class GameIDInfoCrawler(object):
             browser.execute_script("window.stop()")
         time.sleep(3)
         browser.execute_script("window.stop()")
+        page_html = browser.page_source
+        soup = htmlparser.HtmlParser(page_html).get_soup()
+        selected_row = soup.find("table", class_="LadderRankingTable").find("tr", class_="Selected")
         try:
             tmp_dict = {}
-            tmp_dict['rank'] = browser.find_element_by_xpath("//table[@class='LadderRankingTable']//tr[contains(@class,'Selected')]//td[contains(@class,'Rank') and contains(@class,'Cell')]").text
-            tmp_dict['game_id'] = browser.find_element_by_xpath("//table[@class='LadderRankingTable']//tr[contains(@class,'Selected')]//td[contains(@class,'SummonerName')]/a").text
-            tmp_dict['link'] = browser.find_element_by_xpath("//table[@class='LadderRankingTable']//tr[contains(@class,'Selected')]//td[contains(@class,'SummonerName')]/a").get_attribute("href")
-            tmp_dict['tier'] = browser.find_element_by_xpath("//table[@class='LadderRankingTable']//tr[contains(@class,'Selected')]//td[contains(@class,'TierRank')]").text
-            tmp_dict['lp'] = browser.find_element_by_xpath("//table[@class='LadderRankingTable']//tr[contains(@class,'Selected')]//td[contains(@class,'LP')]").text.split()[0].replace(',', '')
-            tmp_dict['total_win'] = browser.find_element_by_xpath(
-                "//table[@class='LadderRankingTable']//tr[contains(@class,'Selected')]//td[contains(@class,'RatioGraph')]//div[contains(@class,'Text') and contains(@class,'Left')]").text
-            tmp_dict['total_lose'] = browser.find_element_by_xpath(
-                "//table[@class='LadderRankingTable']//tr[contains(@class,'Selected')]//td[contains(@class,'RatioGraph')]//div[contains(@class,'Text') and contains(@class,'Right')]").text
-            tmp_dict['total_win_ratio'] = browser.find_element_by_xpath(
-                "//table[@class='LadderRankingTable']//tr[contains(@class,'Selected')]//td[contains(@class,'RatioGraph')]//span[@class='WinRatio']").text.replace('%', '')
+            tmp_dict['rank'] = selected_row.find("td", class_="Rank").get_text()
+            tmp_dict['game_id'] = selected_row.find("td", class_="SummonerName").find("a").get_text()
+            tmp_dict['link'] = 'http:' + selected_row.find("td", class_="SummonerName").find("a").get("href")
+            tmp_dict['tier'] = selected_row.find("td", class_="TierRank").get_text()
+            tmp_dict['lp'] = selected_row.find("td", class_="LP").get_text().split()[0].replace(',', '')
+            tmp_dict['total_win'] = selected_row.find("td", class_="RatioGraph").find("div", {"class": "Text Left"}).get_text()
+            tmp_dict['total_lose'] = selected_row.find("td", class_="RatioGraph").find("div", {"class": "Text Right"}).get_text()
+            tmp_dict['total_win_ratio'] = selected_row.find("td", class_="RatioGraph").find("span", class_="WinRatio").get_text().replace('%', '')
             print(tmp_dict)
             self.gameid_info.append(tmp_dict)
-        except NoSuchElementException:
-            print('invalid gameid:', gameid)
+        except Exception as e:
+            print('invalid gameid:', gameid, ':', e)
             self.invalid_gameids.add(gameid)
         self.gameids_add.remove(gameid)
         print('gameids left:', len(self.gameids_add))
         browser.quit()
-        browser.close()
+        # browser.close()
         return 'ok'
 
     def crawl_gameid_info(self):
@@ -113,19 +117,21 @@ class GameIDInfoCrawler(object):
             browser.execute_script(js)
             time.sleep(1)
             count += 1
-        page_source = browser.page_source
-        print('length of html:', len(page_source))
-        all_gameid = browser.find_elements_by_xpath("//table[@class='LadderRankingTable']//tbody[@class='Body']//tr")
-        for gameid in all_gameid:
+            # print('length of html:', len(browser.page_source))
+        page_html = browser.page_source
+        print('length of html:', len(page_html))
+        soup = htmlparser.HtmlParser(page_html).get_soup()
+        all_gameid = soup.find("table", class_="LadderRankingTable").find_all("tr")
+        for gameid in all_gameid[1:-1]:
             tmp_dict = {}
-            tmp_dict['rank'] = gameid.find_element_by_xpath(".//td[contains(@class,'Rank') and contains(@class,'Cell')]").text
-            tmp_dict['game_id'] = gameid.find_element_by_xpath(".//td[contains(@class,'SummonerName')]/a").text
-            tmp_dict['link'] = gameid.find_element_by_xpath(".//td[contains(@class,'SummonerName')]/a").get_attribute("href")
-            tmp_dict['tier'] = gameid.find_element_by_xpath(".//td[contains(@class,'TierRank')]").text
-            tmp_dict['lp'] = gameid.find_element_by_xpath(".//td[contains(@class,'LP')]").text.split()[0].replace(',', '')
-            tmp_dict['total_win'] = gameid.find_element_by_xpath(".//td[contains(@class,'RatioGraph')]//div[contains(@class,'Text') and contains(@class,'Left')]").text
-            tmp_dict['total_lose'] = gameid.find_element_by_xpath(".//td[contains(@class,'RatioGraph')]//div[contains(@class,'Text') and contains(@class,'Right')]").text
-            tmp_dict['total_win_ratio'] = gameid.find_element_by_xpath(".//td[contains(@class,'RatioGraph')]//span[@class='WinRatio']").text.replace('%', '')
+            tmp_dict['rank'] = gameid.find("td", class_="Rank").get_text()
+            tmp_dict['game_id'] = gameid.find("td", class_="SummonerName").find("a").get_text()
+            tmp_dict['link'] = 'http:' + gameid.find("td", class_="SummonerName").find("a").get("href")
+            tmp_dict['tier'] = gameid.find("td", class_="TierRank").get_text()
+            tmp_dict['lp'] = gameid.find("td", class_="LP").get_text().split()[0].replace(',', '')
+            tmp_dict['total_win'] = gameid.find("td", class_="RatioGraph").find("div", {"class": "Text Left"}).get_text()
+            tmp_dict['total_lose'] = gameid.find("td", class_="RatioGraph").find("div", {"class": "Text Right"}).get_text()
+            tmp_dict['total_win_ratio'] = gameid.find("td", class_="RatioGraph").find("span", class_="WinRatio").get_text().replace('%', '')
             self.gameid_info.append(tmp_dict)
             self.gameids_ladder.add(tmp_dict['game_id'])
             # print(tmp_dict)
@@ -138,7 +144,7 @@ class GameIDInfoCrawler(object):
         print(self.gameids_add)
         browser.close()
         browser.quit()
-        while (len(self.gameids_add) != 0):
+        while len(self.gameids_add) != 0:
             pool = Pool(8)
             pool.map(self.crawl_gameid_info_by_search, self.gameids_add)
             pool.close()

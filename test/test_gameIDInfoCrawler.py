@@ -16,6 +16,7 @@ class TestGameIDInfoCrawler(TestCase):
         self.assertTrue(1 == 1)
 
     def test_crawl_gameid_info(self):
+        print(time.strftime("%H:%M:%S", time.localtime()))
         test_crawler = GameIDInfoCrawler()
         test_crawler.crawl_idmapping_info()
         test_crawler.crawl_gameid_info()
@@ -30,7 +31,7 @@ class TestGameIDInfoCrawler(TestCase):
         except TimeoutException:
             browser.execute_script("window.stop()")
         print('length of html:', len(browser.page_source))
-        test_gameids = set(['M M M M O O O O', 'SSG 메르시', '열심히할게요오', 'SIlde', 'Nox OaO', 'Wo jo lan A', 'RPG Evi'])
+        test_gameids = {'M M M M O O O O', 'SSG 메르시', '열심히할게요오', 'SIlde', 'Nox OaO', 'Wo jo lan A', 'RPG Evi'}
         browser.set_page_load_timeout(10)
         for gameid in test_gameids:
             form = browser.find_element_by_xpath("//div[@class='PageHeaderWrap']//form[@class='FormItem']//input[@class='Input']")
