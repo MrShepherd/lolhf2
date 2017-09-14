@@ -1,6 +1,7 @@
 import time
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.keys import Keys
 
 import dbhandler
 
@@ -88,11 +89,28 @@ class GameIDInfoCrawler(object):
             self.gameids_ladder.add(tmp_dict['game_id'])
             # print(tmp_dict)
         print('number of gameids crawled:', len(self.gameids_ladder))
-        self.gameids_add = self.pro_ids - self.gameids_ladder
+        self.gameids_add = self.pro_gameids - self.gameids_ladder
         db_handler = dbhandler.DBHandler()
         gameids_db = set(db_handler.get_idmappingmanual_gameid())
         self.gameids_add = (gameids_db - self.gameids_ladder) | self.gameids_add
+        print('number of gameids still need to be crawled:', len(self.gameids_add))
         print(self.gameids_add)
+        try:
+            browser.get(self.gameid_info_url)
+        except TimeoutException:
+            browser.execute_script("window.stop()")
+        form = browser.find_element_by_xpath("//div[@class='PageHeaderWrap']//form[@class='FormItem']//input[@class='Input']")
+        browser.set_page_load_timeout(15)
+        for gameid in self.gameids_add:
+            form.clear()
+            form.send_keys(gameid)
+            try:
+                form.send_keys(Keys.RETURN)
+            except TimeoutException:
+                browser.execute_script("window.stop()")
+            tmp_dict = {}
+            self.gameid_info.append(tmp_dict)
+            time.sleep(5)
         browser.close()
         browser.quit()
         print('number of gameids crawled:', len(self.gameid_info))
