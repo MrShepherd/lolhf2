@@ -62,4 +62,7 @@ if __name__ == '__main__':
         print('%s: start to save gameid info to db' % get_time())
         db_handler.save_data(gameid_info, GameIDInfo)
         print('spent %s seconds to save gameid info to db' % time_count())
+        print('%s: start to update summary data' % get_time())
+        db_handler.update_summary()
+        print('spent %s seconds to update summary data' % time_count())
         crawler.close()

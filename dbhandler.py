@@ -29,14 +29,14 @@ class DBHandler(object):
             session.close()
         except Exception as e:
             print(e)
-        # for item in all_data:
-        #     try:
-        #         session = self.DBSession()
-        #         session.add(item)
-        #         session.commit()
-        #         session.close()
-        #     except Exception as e:
-        #         print(e)
+            # for item in all_data:
+            #     try:
+            #         session = self.DBSession()
+            #         session.add(item)
+            #         session.commit()
+            #         session.close()
+            #     except Exception as e:
+            #         print(e)
 
     def get_idmappingmanual_gameid(self):
         session = self.DBSession()
@@ -64,7 +64,7 @@ class DBHandler(object):
         session = self.DBSession()
         sql = '''
         insert into summary
-        select DISTINCT
+        select distinct
         COALESCE(c.player_name,'路人') as 'player_name'
         ,COALESCE(c.player_country,'unknown') as 'player_country'
         ,COALESCE(c.player_team_short_name,'路人') as 'player_team_short_name'
@@ -72,17 +72,26 @@ class DBHandler(object):
         ,COALESCE(c.player_place,'路人') as 'player_place'
         ,a.*
         from gameidinfo a
-        left join idmappingmanual b
-        on a.game_id=b.game_id
         left JOIN
         (
-        SELECT * from player where player_name IN
+        select game_id,player_name
+        from idmapping
+        where game_id not in
+        (select game_id from idmappingmanual)
+        UNION
+        select game_id,player_name
+        from idmappingmanual
+        ) b
+        on a.game_id=b.game_id
+        left join
         (
-        SELECT player_name FROM player GROUP BY player_name HAVING count(*)=1
-        )
+        select *
+        from player
+        where player_name not in (select player_name from player group by player_name having count(*)>1)
+        UNION
+        select * from playermanual
         ) c
-        on b.player_name=c.player_name
-        ;
+        ON b.player_name=c.player_name
         '''
         session.execute(sql)
         session.commit()
