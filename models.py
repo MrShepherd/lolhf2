@@ -32,8 +32,8 @@ class Player(Base):
 class IDMapping(Base):
     __tablename__ = 'idmapping'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    player_team = Column(String(50))
     player_name = Column(String(100))
+    player_team = Column(String(50))
     game_id = Column(String(100))
 
     def __repr__(self):

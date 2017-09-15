@@ -2,6 +2,7 @@ import time
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Summary, IDMappingManual
+from collections import namedtuple
 
 
 class DBHandler(object):
@@ -18,13 +19,24 @@ class DBHandler(object):
     def save_data(self, data_list, table_model):
         self.initial_table(table_model)
         all_data = [table_model(**data) for data in data_list]
+        # for item in all_data:
+        #     print(item.player_name, '=>', item.game_id)
         try:
             session = self.DBSession()
             session.add_all(all_data)
+            # session.bulk_save_objects(all_data)
             session.commit()
             session.close()
         except Exception as e:
             print(e)
+        # for item in all_data:
+        #     try:
+        #         session = self.DBSession()
+        #         session.add(item)
+        #         session.commit()
+        #         session.close()
+        #     except Exception as e:
+        #         print(e)
 
     def get_idmappingmanual_gameid(self):
         session = self.DBSession()

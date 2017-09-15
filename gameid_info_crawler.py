@@ -148,7 +148,7 @@ class GameIDInfoCrawler(object):
         browser.close()
         browser.quit()
         while len(self.gameids_add) != 0:
-            pool = Pool(16)
+            pool = Pool(8)
             pool.map(self.crawl_gameid_info_by_search, self.gameids_add)
             pool.close()
             pool.join()
