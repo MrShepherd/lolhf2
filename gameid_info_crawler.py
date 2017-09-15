@@ -41,9 +41,9 @@ class GameIDInfoCrawler(object):
             # print('number of gameids found:', len(all_li))
             for li in all_li:
                 tmp_dict = {}
+                tmp_dict['player_name'] = li.find("span", class_="SummonerExtra").get_text().upper().strip()
                 tmp_dict['player_team'] = team.find("div", class_="TeamName").get_text().strip()
                 tmp_dict['game_id'] = li.find("div", class_="SummonerName").get_text()
-                tmp_dict['player_name'] = li.find("span", class_="SummonerExtra").get_text().upper()
                 # print(tmp_dict)
                 self.idmapping_data.append(tmp_dict)
                 self.pro_gameids.add(tmp_dict['game_id'])
@@ -86,15 +86,15 @@ class GameIDInfoCrawler(object):
         try:
             selected_row = soup.find("table", class_="LadderRankingTable").find("tr", class_="Selected")
             tmp_dict = {}
-            tmp_dict['rank'] = selected_row.find("td", class_="Rank").get_text()
             tmp_dict['game_id'] = selected_row.find("td", class_="SummonerName").find("a").get_text()
             tmp_dict['link'] = 'http:' + selected_row.find("td", class_="SummonerName").find("a").get("href")
+            tmp_dict['rank'] = selected_row.find("td", class_="Rank").get_text()
             tmp_dict['tier'] = selected_row.find("td", class_="TierRank").get_text()
             tmp_dict['lp'] = selected_row.find("td", class_="LP").get_text().split()[0].replace(',', '')
             tmp_dict['total_win'] = selected_row.find("td", class_="RatioGraph").find("div", {"class": "Text Left"}).get_text()
             tmp_dict['total_lose'] = selected_row.find("td", class_="RatioGraph").find("div", {"class": "Text Right"}).get_text()
             tmp_dict['total_win_ratio'] = selected_row.find("td", class_="RatioGraph").find("span", class_="WinRatio").get_text().replace('%', '')
-            print(tmp_dict)
+            # print(tmp_dict)
             self.gameid_info.append(tmp_dict)
         except Exception as e:
             print('invalid gameid:', gameid, ':', e)
@@ -127,9 +127,9 @@ class GameIDInfoCrawler(object):
         all_gameid = soup.find("table", class_="LadderRankingTable").find_all("tr")
         for gameid in all_gameid[1:-1]:
             tmp_dict = {}
-            tmp_dict['rank'] = gameid.find("td", class_="Rank").get_text()
             tmp_dict['game_id'] = gameid.find("td", class_="SummonerName").find("a").get_text()
             tmp_dict['link'] = 'http:' + gameid.find("td", class_="SummonerName").find("a").get("href")
+            tmp_dict['rank'] = gameid.find("td", class_="Rank").get_text()
             tmp_dict['tier'] = gameid.find("td", class_="TierRank").get_text()
             tmp_dict['lp'] = gameid.find("td", class_="LP").get_text().split()[0].replace(',', '')
             tmp_dict['total_win'] = gameid.find("td", class_="RatioGraph").find("div", {"class": "Text Left"}).get_text()
@@ -139,10 +139,10 @@ class GameIDInfoCrawler(object):
             self.gameids_ladder.add(tmp_dict['game_id'])
             # print(tmp_dict)
         print('number of gameids crawled:', len(self.gameids_ladder))
-        self.gameids_add = self.pro_gameids - self.gameids_ladder
+        # self.gameids_add = self.pro_gameids - self.gameids_ladder
         db_handler = dbhandler.DBHandler()
         gameids_db = set(db_handler.get_idmappingmanual_gameid())
-        self.gameids_add = (gameids_db - self.gameids_ladder) | self.gameids_add
+        self.gameids_add = (gameids_db - self.gameids_ladder) | (self.pro_gameids - self.gameids_ladder)
         print('number of gameids still need to be crawled:', len(self.gameids_add))
         print(self.gameids_add)
         browser.close()

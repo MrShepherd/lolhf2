@@ -17,17 +17,14 @@ class DBHandler(object):
 
     def save_data(self, data_list, table_model):
         self.initial_table(table_model)
-        for data in data_list:
-            try:
-                session = self.DBSession()
-                row = table_model(**data)
-                # print('saving:', row)
-                session.add(row)
-                session.commit()
-                session.close()
-            except Exception as e:
-                print(e)
-                continue
+        all_data = [table_model(**data) for data in data_list]
+        try:
+            session = self.DBSession()
+            session.add_all(all_data)
+            session.commit()
+            session.close()
+        except Exception as e:
+            print(e)
 
     def get_idmappingmanual_gameid(self):
         session = self.DBSession()
