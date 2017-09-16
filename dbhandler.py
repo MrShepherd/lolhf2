@@ -47,17 +47,6 @@ class DBHandler(object):
         session.close()
         return tmplist
 
-    def update_idmapping_manual(self):
-        session = self.DBSession()
-        sql = '''
-        INSERT into idmappingmanual(player_name,player_team,game_id,enable)
-        SELECT player_name,player_team,game_id,0 from idmapping
-        where game_id not in (select game_id from idmappingmanual);
-        '''
-        session.execute(sql)
-        session.commit()
-        session.close()
-
     def update_summary(self):
         self.initial_table(Summary)
         time.sleep(10)
