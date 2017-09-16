@@ -77,6 +77,7 @@ class DBHandler(object):
         select *
         from player
         where player_name not in (select player_name from player group by player_name having count(*)>1)
+        and player_name not in (select player_name from playermanual)
         UNION
         select * from playermanual
         ) c
